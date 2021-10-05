@@ -31,7 +31,7 @@ router.post('/login', passport.authenticate('local', { failureFlash: true, failu
     req.flash('success', 'Welcome Back!')
     const redirectUrl = req.session.returnTo || '/campgrounds';
     delete req.session.returnTo
-    res.redirect(redirectUrl)
+    res.redirect(307, redirectUrl)
 })
 
 router.get('/logout', (req, res) => {
