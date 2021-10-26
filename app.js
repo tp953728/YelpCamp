@@ -22,8 +22,11 @@ const { sensitiveHeaders } = require('http2');
 const campgroundsRoutes = require('./routes/campgrounds');
 const reviewsRoutes = require('./routes/reviews');
 const usersRoutes = require('./routes/users')
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp'
 
-mongoose.connect('mongodb://localhost:27017/yelp-camp')
+const MongoStore = require('connect-mongo');
+
+mongoose.connect(dbUrl)
     .then(() => {
         console.log('mongoDB connected.')
     })
@@ -41,9 +44,22 @@ app.use(methodOverride('_method'))
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'secretString'
+
+const store = new MongoStore({
+    mongoUrl: dbUrl,
+    secret,
+    touchAfter: 24 * 60 * 60
+})
+
+store.on('error', function (e) {
+    console.log('session error,', e)
+})
+
 const sessionConfig = {
+    store,
     name: 'yelpCampSession',
-    secret: 'secretString',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -73,6 +89,7 @@ const styleSrcUrls = [
     "https://fonts.googleapis.com/",
     "https://use.fontawesome.com/",
     "https://cdn.jsdelivr.net",
+    'https://stackpath.bootstrapcdn.com/'
 ];
 const connectSrcUrls = [
     "https://api.mapbox.com/",
